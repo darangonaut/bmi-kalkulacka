@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>BMI kalkulačka </title>
+    <link rel='icon' href='favicon.ico' type='image/x-icon'/ >
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.3.7/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+</head>
+
+<body>
+    <div id="mojSuperElement">
+        <h1>BMI kalkulačka</h1>
+
+        <div class="hodnota">
+            <div v-if="vyska" class="popis">výška (cm)</div>
+            <div v-else class="popis__blank"></div>
+            <input v-model="vyska" type="text" class="uk-input " placeholder="výška (cm)">
+        </div>
+
+        <div class="hodnota">
+            <div v-if="hmotnost" class="popis">hmotnosť (kg)</div>
+            <div v-else class="popis__blank"></div>
+            <input v-model="hmotnost" type="text" class="uk-input " placeholder="hmotnosť (kg)">
+        </div>
+
+        <div class="vysledok" v-if="bmi > 1">tvoje BMI je {{ bmi }}</div>
+        <br>
+        <div>{{ bmiText }}</div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+
+</html>
