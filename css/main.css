@@ -1,57 +1,57 @@
-    body {
-        padding: 5rem;
-        display: flex;
-        justify-content: center;
-    }
+body {
+	padding: 5rem;
+	display: flex;
+	justify-content: center;
+}
 
-    #mojSuperElement {
-        max-width: 400px;
-        min-height: 500px;
-        box-shadow: rgb(229, 229, 229) -10px -10px 50px, rgb(102, 102, 102) 30px 20px 50px;
-        padding: 4rem 3rem;
-    }
+#mojSuperElement {
+	max-width: 400px;
+	min-height: 500px;
+	box-shadow: rgb(229, 229, 229) -10px -10px 50px, rgb(102, 102, 102) 30px 20px 50px;
+	padding: 4rem 3rem;
+}
 
-    .vysledok {
-        padding: 1rem;
-        font-size: 2rem;
-    }
+.vysledok {
+	padding: 1rem;
+	font-size: 2rem;
+}
 
-    .popis {
-        position: relative;
-        background: #fff;
-        font-size: .7rem;
-        height: 14px;
-        align-items: center;
-        display: flex;
-        width: 100px;
-        justify-content: center;
-        top: 27px;
-        left: 11px;
-        transition: opacity .5s;
-    }
+.popis {
+	position: relative;
+	background: #fff;
+	font-size: .7rem;
+	height: 14px;
+	align-items: center;
+	display: flex;
+	width: 100px;
+	justify-content: center;
+	top: 27px;
+	left: 11px;
+	transition: opacity .5s;
+}
 
-    .popis__blank {
-        position: relative;
-        font-size: .7rem;
-        height: 14px;
-        align-items: center;
-        display: flex;
-        width: 100px;
-        justify-content: center;
-        top: 27px;
-        left: 11px;
-    }
+.popis__blank {
+	position: relative;
+	font-size: .7rem;
+	height: 14px;
+	align-items: center;
+	display: flex;
+	width: 100px;
+	justify-content: center;
+	top: 27px;
+	left: 11px;
+}
 
-    .hodnota input {
-        border-radius: 3px;
-        margin-top: 1rem;
-    }
+.hodnota input {
+	border-radius: 3px;
+	margin-top: 1rem;
+}
 
-    .hodnota {
-        margin-top: .5rem;
-    }
+.hodnota {
+	margin-top: .5rem;
+}
 
-    input.uk-input {
-        padding: 2rem;
-        font-size: 1.4rem;
-    }
+input.uk-input {
+	padding: 2rem;
+	font-size: 1.4rem;
+}
