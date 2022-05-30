@@ -7,6 +7,7 @@
     <title>BMI kalkulačka </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.3.7/dist/css/uikit.min.css" />
     <link rel="stylesheet" href="css/main.css" />
+    <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
@@ -31,6 +32,12 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="js/main.js"></script>
+
+<script type="module">
+   import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
+   const el = document.createElement('pwa-update');
+   document.body.appendChild(el);
+</script>
 
 </body>
 
