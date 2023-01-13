@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>BMI kalkulačka </title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.3.7/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma-rtl.min.css">
     <link rel="stylesheet" href="css/main.css" />
     <link rel="apple-touch-icon" href="/imgs/icons8-weight-linector-lineal-color-76.png" />
     <link rel="manifest" href="manifest.json">
@@ -18,13 +18,13 @@
         <div class="hodnota">
             <div v-if="vyska" class="popis">výška (cm)</div>
             <div v-else class="popis__blank"></div>
-            <input v-model="vyska" type="text" class="uk-input " placeholder="výška (cm)">
+            <input v-model="vyska" type="text" class="input " placeholder="výška (cm)">
         </div>
 
         <div class="hodnota">
             <div v-if="hmotnost" class="popis">hmotnosť (kg)</div>
             <div v-else class="popis__blank"></div>
-            <input v-model="hmotnost" type="text" class="uk-input " placeholder="hmotnosť (kg)">
+            <input v-model="hmotnost" type="text" class="input " placeholder="hmotnosť (kg)">
         </div>
 
         <div class="vysledok" v-if="bmi > 1">tvoje BMI je {{ bmi }}</div>
