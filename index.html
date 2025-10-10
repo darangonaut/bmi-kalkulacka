@@ -1,53 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <title>BMI kalkulačka </title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma-rtl.min.css">
-    <link rel="stylesheet" href="css/main.css" />
-    <link rel="apple-touch-icon" href="/imgs/icons8-weight-linector-lineal-color-76.png" />
-    <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMI Kalkulačka</title>
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+  </style>
 </head>
 
 <body>
-    <div id="mojSuperElement">
-        <h2>BMI kalkulačka</h2>
+  <div id="app"></div>
 
-        <div class="hodnota">
-            <div v-if="vyska" class="popis">výška (cm)</div>
-            <div v-else class="popis__blank"></div>
-            <input v-model="vyska" type="text" class="input " placeholder="výška (cm)">
-        </div>
+  <script>
+    const { createApp } = Vue;
 
-        <div class="hodnota">
-            <div v-if="hmotnost" class="popis">hmotnosť (kg)</div>
-            <div v-else class="popis__blank"></div>
-            <input v-model="hmotnost" type="text" class="input " placeholder="hmotnosť (kg)">
-        </div>
-
-        <div class="vysledok" v-if="bmi > 1">tvoje BMI je {{ bmi }}</div>
-        <br>
-        <div>{{ bmiText }}</div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="js/main.js"></script>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/sw.js').then(function(registration) {
-              // Registration was successful
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, function(err) {
-              // registration failed :(
-              console.log('ServiceWorker registration failed: ', err);
-            });
-          });
+    createApp({
+      data() {
+        return {
+          vyska: '',
+          hmotnost: ''
         }
-      </script>
-      
+      },
+      computed: {
+        bmi() {
+          const v = parseFloat(this.vyska);
+          const h = parseFloat(this.hmotnost);
+          if (!v || !h || v <= 0 || h <= 0) return 0;
+          const bmiCalc = h / ((v / 100) * (v / 100));
+          return isFinite(bmiCalc) ? bmiCalc.toFixed(1) : 0;
+        },
+        bmiInfo() {
+          const bmiNum = parseFloat(this.bmi);
+          if (bmiNum <= 0 || !isFinite(bmiNum)) {
+            return { text: '', color: '', bgColor: '', icon: '', category: '' };
+          }
+
+          if (bmiNum <= 17.5) {
+            return {
+              category: 'Podvýživa',
+              text: 'Čím je číslo menší, tím více se přibližujete k podvýživě. Týká se především trpících anorexií či bulímií. Tělo není dostatečně vyživované, chybí mu základní stopové prvky, což se projevuje častými onemocněními a celkovým oslabením organismu.',
+              color: 'text-blue-600',
+              bgColor: 'bg-blue-50',
+              icon: '📉'
+            };
+          } else if (bmiNum <= 25) {
+            return {
+              category: 'Ideální váha',
+              text: 'Ideální a zdravá váha. Člověk s tímto BMI by si měl svou váhu udržet vyváženou stravou a dostatkem pohybu. Zdravotní komplikace spojené s hmotností jsou v této skupině nejméně časté.',
+              color: 'text-green-600',
+              bgColor: 'bg-green-50',
+              icon: '✅'
+            };
+          } else if (bmiNum <= 30) {
+            return {
+              category: 'Mírná nadváha',
+              text: 'Riziko vysokého tlaku či srdečných obtíží se zde mírně zvyšuje. Povětšině jde o nesprávné stravovacie návyky, například nadměrné konzumování večer a v noci, nebo nevyvážený podíl tuků a jiných složek potravy. Rovněž je zde častý nedostatek pohybu či sedavé zaměstnání.',
+              color: 'text-orange-600',
+              bgColor: 'bg-orange-50',
+              icon: '⚠️'
+            };
+          } else if (bmiNum <= 40) {
+            return {
+              category: 'Obezita',
+              text: 'V tomto případě jde o poměrně vážné zdravotní riziko.',
+              color: 'text-red-600',
+              bgColor: 'bg-red-50',
+              icon: '📈'
+            };
+          } else {
+            return {
+              category: 'Těžká obezita',
+              text: 'V tomto stádiu je potřebná radikální změna stravovacího režimu a návyků.',
+              color: 'text-red-700',
+              bgColor: 'bg-red-100',
+              icon: '🚨'
+            };
+          }
+        }
+      },
+      template: `
+                <div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 flex items-center justify-center">
+                    <div class="w-full max-w-md">
+                        <!-- Header -->
+                        <div class="text-center mb-8">
+                            <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
+                                <span class="text-3xl">⚖️</span>
+                            </div>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">BMI Kalkulačka</h1>
+                            <p class="text-gray-600">Zjistěte svůj Body Mass Index</p>
+                        </div>
+
+                        <!-- Input Card -->
+                        <div class="bg-white rounded-3xl shadow-xl p-6 mb-6">
+                            <!-- Výška Input -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Výška (cm)
+                                </label>
+                                <input
+                                    type="number"
+                                    v-model="vyska"
+                                    placeholder="170"
+                                    class="w-full px-4 py-4 text-lg bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all"
+                                />
+                            </div>
+
+                            <!-- Hmotnost Input -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Hmotnost (kg)
+                                </label>
+                                <input
+                                    type="number"
+                                    v-model="hmotnost"
+                                    placeholder="70"
+                                    class="w-full px-4 py-4 text-lg bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all"
+                                />
+                            </div>
+
+                            <!-- BMI Result -->
+                            <div v-if="bmi > 0" class="mt-6 pt-6 border-t-2 border-gray-100">
+                                <div class="text-center mb-4">
+                                    <div class="text-sm font-semibold text-gray-600 mb-2">Vaše BMI</div>
+                                    <div :class="'text-6xl font-bold mb-2 ' + bmiInfo.color">
+                                        {{ bmi }}
+                                    </div>
+                                    <div :class="'inline-flex items-center gap-2 px-4 py-2 rounded-full ' + bmiInfo.bgColor">
+                                        <span class="text-xl">{{ bmiInfo.icon }}</span>
+                                        <span :class="'font-semibold ' + bmiInfo.color">{{ bmiInfo.category }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Card -->
+                        <div v-if="bmi > 0 && bmiInfo.text" :class="'rounded-3xl shadow-lg p-6 border-2 ' + bmiInfo.bgColor">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl mt-1">
+                                    {{ bmiInfo.icon }}
+                                </div>
+                                <p class="text-gray-700 leading-relaxed">
+                                    {{ bmiInfo.text }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- BMI Scale Reference -->
+                        <div class="mt-8 bg-white rounded-3xl shadow-xl p-6">
+                            <h3 class="text-sm font-bold text-gray-900 mb-4">Referenční hodnoty BMI</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                    <span class="text-sm text-gray-700">≤ 17,5 - Podvýživa</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span class="text-sm text-gray-700">17,5 - 25 - Ideální váha</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-orange-500"></div>
+                                    <span class="text-sm text-gray-700">25 - 30 - Mírná nadváha</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <span class="text-sm text-gray-700">30 - 40 - Obezita</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-red-700"></div>
+                                    <span class="text-sm text-gray-700">> 40 - Těžká obezita</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="text-center mt-8 text-sm text-gray-500">
+                            <p>BMI je pouze orientační ukazatel</p>
+                        </div>
+                    </div>
+                </div>
+            `
+    }).mount('#app');
+  </script>
+
+  <!-- Service Worker pro PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').then(function (registration) {
+          console.log('ServiceWorker registrován');
+        }, function (err) {
+          console.log('ServiceWorker registrace selhala: ', err);
+        });
+      });
+    }
+  </script>
 </body>
 
 </html>
