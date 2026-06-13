@@ -23,7 +23,8 @@ Single `index.html` — **Vue 3** + **Tailwind** (both via CDN), Space Grotesk, 
 
 - `index.html` — the whole app (markup, Vue logic, styles)
 - `manifest.json`, `sw.js` — PWA manifest + service worker
-- `imgs/` — icons
+- `favicon.svg`, `favicon-16/32.png`, `apple-touch-icon.png`, `icon-192/512.png` — icon set (gauge motif)
+- `bin/generate-favicons.php` — regenerates the PNG icons from the gauge motif (PHP GD, no external tooling)
 
 ## Development
 

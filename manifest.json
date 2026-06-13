@@ -4,8 +4,8 @@
   "description": "Kalkulačka pro výpočet Body Mass Indexu",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#9333ea",
-  "background_color": "#ffffff",
+  "theme_color": "#fafafa",
+  "background_color": "#fafafa",
   "orientation": "portrait",
   "icons": [
     {
