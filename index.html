@@ -3,18 +3,74 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>BMI Kalkulačka</title>
+  <meta name="theme-color" content="#fafafa">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --ink: #171717;
+      --paper: #fafafa;
+      --card: #ffffff;
+      --hairline: #e5e5e5;
+      --mute: #737373;
+      --faint: #a3a3a3;
+    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
     }
+    /* Number input bez spinnerov */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    .field {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid var(--hairline);
+      padding: 0.4rem 0;
+      font-family: inherit;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      transition: border-color .15s;
+    }
+    .field:focus { outline: none; border-bottom-color: var(--ink); }
+    .field::placeholder { color: var(--faint); font-weight: 500; }
+
+    .gauge-track {
+      position: relative;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(to right,
+        #2563eb 0 10%, #16a34a 10% 40%, #ea580c 40% 60%, #dc2626 60% 100%);
+    }
+    .gauge-marker {
+      position: absolute;
+      top: 50%;
+      width: 16px; height: 16px;
+      border-radius: 999px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      transform: translate(-50%, -50%);
+      transition: left .35s cubic-bezier(.4,0,.2,1), border-color .35s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+    .fade-enter-active { transition: opacity .25s ease, transform .25s ease; }
+    .fade-enter-from { opacity: 0; transform: translateY(4px); }
   </style>
 </head>
 
@@ -26,10 +82,7 @@
 
     createApp({
       data() {
-        return {
-          vyska: '',
-          hmotnost: ''
-        }
+        return { vyska: '', hmotnost: '', pohlavi: '', vek: '' }
       },
       computed: {
         bmi() {
@@ -39,156 +92,186 @@
           const bmiCalc = h / ((v / 100) * (v / 100));
           return isFinite(bmiCalc) ? bmiCalc.toFixed(1) : 0;
         },
+        // Pozícia ručičky na škále 15–40 BMI, v percentách (clamp 0–100).
+        markerPos() {
+          const b = parseFloat(this.bmi);
+          if (!b) return 0;
+          return Math.min(100, Math.max(0, ((b - 15) / 25) * 100));
+        },
+        // Zdravý rozsah hmotnosti pre zadanú výšku (BMI 18,5–25).
+        idealWeight() {
+          const v = parseFloat(this.vyska);
+          if (!v || v <= 0) return null;
+          const m = (v / 100) * (v / 100);
+          return { min: (18.5 * m).toFixed(1), max: (25 * m).toFixed(1) };
+        },
+        // Odhad % telesného tuku — Deurenbergov vzorec (dospelí):
+        // BF% = 1,2·BMI + 0,23·vek − 10,8·pohlavie − 5,4 (pohlavie: muž=1, žena=0).
+        bodyFat() {
+          const b = parseFloat(this.bmi);
+          const age = parseFloat(this.vek);
+          const isSex = this.pohlavi === 'muz' || this.pohlavi === 'zena';
+          if (!b || b <= 0 || !age || age <= 0 || !isSex) return null;
+          const sex = this.pohlavi === 'muz' ? 1 : 0;
+          const bf = 1.2 * b + 0.23 * age - 10.8 * sex - 5.4;
+          return Math.max(0, bf).toFixed(1);
+        },
+        bodyFatInfo() {
+          if (this.bodyFat === null) return { category: '', accent: '' };
+          const bf = parseFloat(this.bodyFat);
+          // Kategórie % tuku podľa ACE, závisia od pohlavia.
+          const ranges = this.pohlavi === 'muz'
+            ? [[5, 'Esenciální tuk', '#2563eb'], [13, 'Sportovní', '#16a34a'], [17, 'Fitness', '#16a34a'], [24, 'Průměr', '#ea580c'], [Infinity, 'Vysoké', '#dc2626']]
+            : [[13, 'Esenciální tuk', '#2563eb'], [20, 'Sportovní', '#16a34a'], [24, 'Fitness', '#16a34a'], [31, 'Průměr', '#ea580c'], [Infinity, 'Vysoké', '#dc2626']];
+          for (const [max, category, accent] of ranges) {
+            if (bf <= max) return { category, accent };
+          }
+          return { category: '', accent: '' };
+        },
         bmiInfo() {
-          const bmiNum = parseFloat(this.bmi);
-          if (bmiNum <= 0 || !isFinite(bmiNum)) {
-            return { text: '', color: '', bgColor: '', icon: '', category: '' };
-          }
+          const b = parseFloat(this.bmi);
+          if (b <= 0 || !isFinite(b)) return { category: '', text: '', accent: '' };
 
-          if (bmiNum <= 17.5) {
-            return {
-              category: 'Podvýživa',
-              text: 'Čím je číslo menší, tím více se přibližujete k podvýživě. Týká se především trpících anorexií či bulímií. Tělo není dostatečně vyživované, chybí mu základní stopové prvky, což se projevuje častými onemocněními a celkovým oslabením organismu.',
-              color: 'text-blue-600',
-              bgColor: 'bg-blue-50',
-              icon: '📉'
-            };
-          } else if (bmiNum <= 25) {
-            return {
-              category: 'Ideální váha',
-              text: 'Ideální a zdravá váha. Člověk s tímto BMI by si měl svou váhu udržet vyváženou stravou a dostatkem pohybu. Zdravotní komplikace spojené s hmotností jsou v této skupině nejméně časté.',
-              color: 'text-green-600',
-              bgColor: 'bg-green-50',
-              icon: '✅'
-            };
-          } else if (bmiNum <= 30) {
-            return {
-              category: 'Mírná nadváha',
-              text: 'Riziko vysokého tlaku či srdečných obtíží se zde mírně zvyšuje. Povětšině jde o nesprávné stravovacie návyky, například nadměrné konzumování večer a v noci, nebo nevyvážený podíl tuků a jiných složek potravy. Rovněž je zde častý nedostatek pohybu či sedavé zaměstnání.',
-              color: 'text-orange-600',
-              bgColor: 'bg-orange-50',
-              icon: '⚠️'
-            };
-          } else if (bmiNum <= 40) {
-            return {
-              category: 'Obezita',
-              text: 'V tomto případě jde o poměrně vážné zdravotní riziko.',
-              color: 'text-red-600',
-              bgColor: 'bg-red-50',
-              icon: '📈'
-            };
-          } else {
-            return {
-              category: 'Těžká obezita',
-              text: 'V tomto stádiu je potřebná radikální změna stravovacího režimu a návyků.',
-              color: 'text-red-700',
-              bgColor: 'bg-red-100',
-              icon: '🚨'
-            };
-          }
+          if (b <= 17.5) return {
+            category: 'Podváha', accent: '#2563eb',
+            text: 'Čím je číslo menší, tím více se přibližujete k podvýživě. Tělo není dostatečně vyživované, chybí mu základní stopové prvky, což se projevuje častými onemocněními a celkovým oslabením organismu.'
+          };
+          if (b <= 25) return {
+            category: 'Ideální váha', accent: '#16a34a',
+            text: 'Ideální a zdravá váha. Udržujte si ji vyváženou stravou a dostatkem pohybu. Zdravotní komplikace spojené s hmotností jsou v této skupině nejméně časté.'
+          };
+          if (b <= 30) return {
+            category: 'Mírná nadváha', accent: '#ea580c',
+            text: 'Riziko vysokého tlaku či srdečních obtíží se zde mírně zvyšuje. Často jde o nesprávné stravovací návyky a nedostatek pohybu či sedavé zaměstnání.'
+          };
+          if (b <= 40) return {
+            category: 'Obezita', accent: '#dc2626',
+            text: 'V tomto případě jde o poměrně vážné zdravotní riziko. Vhodná je konzultace s lékařem a změna životního stylu.'
+          };
+          return {
+            category: 'Těžká obezita', accent: '#b91c1c',
+            text: 'V tomto stádiu je potřebná radikální změna stravovacího režimu a návyků, ideálně pod odborným dohledem.'
+          };
         }
       },
       template: `
-                <div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 flex items-center justify-center">
-                    <div class="w-full max-w-md">
-                        <!-- Header -->
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
-                                <span class="text-3xl">⚖️</span>
-                            </div>
-                            <h1 class="text-3xl font-bold text-gray-900 mb-2">BMI Kalkulačka</h1>
-                            <p class="text-gray-600">Zjistěte svůj Body Mass Index</p>
-                        </div>
+        <div class="min-h-screen flex items-start sm:items-center justify-center px-5 py-10">
+          <div class="w-full max-w-sm">
 
-                        <!-- Input Card -->
-                        <div class="bg-white rounded-3xl shadow-xl p-6 mb-6">
-                            <!-- Výška Input -->
-                            <div class="mb-6">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Výška (cm)
-                                </label>
-                                <input
-                                    type="number"
-                                    v-model="vyska"
-                                    placeholder="170"
-                                    class="w-full px-4 py-4 text-lg bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all"
-                                />
-                            </div>
+            <!-- Header -->
+            <header class="mb-8">
+              <h1 class="text-2xl font-bold tracking-tight">BMI Kalkulačka</h1>
+              <p class="text-sm mt-0.5" style="color:var(--mute)">Zjistěte svůj Body Mass Index</p>
+            </header>
 
-                            <!-- Hmotnost Input -->
-                            <div class="mb-6">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Hmotnost (kg)
-                                </label>
-                                <input
-                                    type="number"
-                                    v-model="hmotnost"
-                                    placeholder="70"
-                                    class="w-full px-4 py-4 text-lg bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all"
-                                />
-                            </div>
+            <!-- Inputs -->
+            <div class="grid grid-cols-2 gap-5 mb-8">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1" style="color:var(--mute)">Výška</label>
+                <input type="number" inputmode="decimal" v-model="vyska" placeholder="170" class="field" />
+                <span class="text-xs" style="color:var(--faint)">cm</span>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1" style="color:var(--mute)">Hmotnost</label>
+                <input type="number" inputmode="decimal" v-model="hmotnost" placeholder="70" class="field" />
+                <span class="text-xs" style="color:var(--faint)">kg</span>
+              </div>
+            </div>
 
-                            <!-- BMI Result -->
-                            <div v-if="bmi > 0" class="mt-6 pt-6 border-t-2 border-gray-100">
-                                <div class="text-center mb-4">
-                                    <div class="text-sm font-semibold text-gray-600 mb-2">Vaše BMI</div>
-                                    <div :class="'text-6xl font-bold mb-2 ' + bmiInfo.color">
-                                        {{ bmi }}
-                                    </div>
-                                    <div :class="'inline-flex items-center gap-2 px-4 py-2 rounded-full ' + bmiInfo.bgColor">
-                                        <span class="text-xl">{{ bmiInfo.icon }}</span>
-                                        <span :class="'font-semibold ' + bmiInfo.color">{{ bmiInfo.category }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Info Card -->
-                        <div v-if="bmi > 0 && bmiInfo.text" :class="'rounded-3xl shadow-lg p-6 border-2 ' + bmiInfo.bgColor">
-                            <div class="flex items-start gap-3">
-                                <div class="text-2xl mt-1">
-                                    {{ bmiInfo.icon }}
-                                </div>
-                                <p class="text-gray-700 leading-relaxed">
-                                    {{ bmiInfo.text }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- BMI Scale Reference -->
-                        <div class="mt-8 bg-white rounded-3xl shadow-xl p-6">
-                            <h3 class="text-sm font-bold text-gray-900 mb-4">Referenční hodnoty BMI</h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                                    <span class="text-sm text-gray-700">≤ 17,5 - Podvýživa</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                                    <span class="text-sm text-gray-700">17,5 - 25 - Ideální váha</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-3 h-3 rounded-full bg-orange-500"></div>
-                                    <span class="text-sm text-gray-700">25 - 30 - Mírná nadváha</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                                    <span class="text-sm text-gray-700">30 - 40 - Obezita</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-3 h-3 rounded-full bg-red-700"></div>
-                                    <span class="text-sm text-gray-700">> 40 - Těžká obezita</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="text-center mt-8 text-sm text-gray-500">
-                            <p>BMI je pouze orientační ukazatel</p>
-                        </div>
-                    </div>
+            <!-- Pohlaví + věk (volitelné, pro odhad % tuku) -->
+            <div class="grid grid-cols-2 gap-5 mb-8 items-end">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:var(--mute)">Pohlaví</label>
+                <div class="flex border rounded-lg overflow-hidden" style="border-color:var(--hairline)">
+                  <button type="button" @click="pohlavi = 'muz'" class="flex-1 py-2.5 text-sm font-semibold transition" :style="pohlavi === 'muz' ? 'background:var(--ink);color:#fff' : 'color:var(--mute)'">Muž</button>
+                  <button type="button" @click="pohlavi = 'zena'" class="flex-1 py-2.5 text-sm font-semibold transition border-l" style="border-color:var(--hairline)" :style="pohlavi === 'zena' ? 'background:var(--ink);color:#fff' : 'color:var(--mute)'">Žena</button>
                 </div>
-            `
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1" style="color:var(--mute)">Věk</label>
+                <input type="number" inputmode="numeric" v-model="vek" placeholder="30" class="field" />
+                <span class="text-xs" style="color:var(--faint)">let</span>
+              </div>
+            </div>
+
+            <!-- Result -->
+            <transition name="fade">
+              <div v-if="bmi > 0">
+                <!-- Big number + category -->
+                <div class="flex items-end justify-between mb-5">
+                  <div>
+                    <div class="text-xs font-semibold uppercase tracking-wide mb-1" style="color:var(--mute)">Vaše BMI</div>
+                    <div class="text-6xl font-bold leading-none tracking-tight" :style="{ color: bmiInfo.accent }">{{ bmi }}</div>
+                  </div>
+                  <div class="text-sm font-semibold pb-1" :style="{ color: bmiInfo.accent }">{{ bmiInfo.category }}</div>
+                </div>
+
+                <!-- Gauge -->
+                <div class="mb-1">
+                  <div class="gauge-track">
+                    <div class="gauge-marker" :style="{ left: markerPos + '%', borderColor: bmiInfo.accent }"></div>
+                  </div>
+                  <div class="flex justify-between mt-2 text-xs" style="color:var(--faint)">
+                    <span>15</span><span>17,5</span><span>25</span><span>30</span><span>40</span>
+                  </div>
+                </div>
+
+                <!-- Ideal weight -->
+                <div v-if="idealWeight" class="mt-5 py-3 border-t border-b" style="border-color:var(--hairline)">
+                  <span class="text-sm" style="color:var(--mute)">Zdravá hmotnost pro vaši výšku:</span>
+                  <span class="text-sm font-semibold ml-1">{{ idealWeight.min }}–{{ idealWeight.max }} kg</span>
+                </div>
+
+                <!-- Body fat % -->
+                <div v-if="bodyFat !== null" class="mt-5">
+                  <div class="flex items-end justify-between">
+                    <div>
+                      <div class="text-xs font-semibold uppercase tracking-wide mb-1" style="color:var(--mute)">Odhad % tělesného tuku</div>
+                      <div class="text-3xl font-bold leading-none tracking-tight" :style="{ color: bodyFatInfo.accent }">{{ bodyFat }}<span class="text-xl">%</span></div>
+                    </div>
+                    <div class="text-sm font-semibold pb-0.5" :style="{ color: bodyFatInfo.accent }">{{ bodyFatInfo.category }}</div>
+                  </div>
+                  <p class="text-xs mt-1.5" style="color:var(--faint)">Odhad dle Deurenbergovy rovnice — orientační, nenahrazuje měření.</p>
+                </div>
+
+                <!-- Hint pro % tuku -->
+                <div v-else class="mt-5 text-xs" style="color:var(--faint)">
+                  Vyplňte pohlaví a věk pro odhad % tělesného tuku.
+                </div>
+
+                <!-- Explanation -->
+                <p class="text-sm leading-relaxed mt-5" style="color:var(--mute)">{{ bmiInfo.text }}</p>
+
+                <!-- Caveat: svalnatí lidé / kulturisté -->
+                <div class="mt-4 p-3 text-sm leading-relaxed" style="background:var(--card);border-left:2px solid var(--faint);color:var(--mute)">
+                  <span class="font-semibold" style="color:var(--ink)">Pozor:</span> BMI nerozlišuje sval od tuku. U velmi svalnatých lidí (kulturisté, siloví sportovci) BMI hmotnost nadhodnocuje a může je zařadit do „nadváhy" či „obezity", přestože mají nízké % tuku. Pro ně je BMI nevhodný — vypovídavější je % tělesného tuku nebo obvod pasu.
+                </div>
+              </div>
+            </transition>
+
+            <!-- Empty state hint -->
+            <div v-if="bmi <= 0" class="py-10 text-center text-sm" style="color:var(--faint)">
+              Zadejte výšku a hmotnost
+            </div>
+
+            <!-- Reference -->
+            <div class="mt-10">
+              <h3 class="text-xs font-semibold uppercase tracking-wide mb-3" style="color:var(--mute)">Referenční hodnoty</h3>
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-2.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#2563eb"></span><span>≤ 17,5 — Podváha</span></div>
+                <div class="flex items-center gap-2.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#16a34a"></span><span>17,5–25 — Ideální váha</span></div>
+                <div class="flex items-center gap-2.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#ea580c"></span><span>25–30 — Mírná nadváha</span></div>
+                <div class="flex items-center gap-2.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#dc2626"></span><span>30–40 — Obezita</span></div>
+                <div class="flex items-center gap-2.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#b91c1c"></span><span>&gt; 40 — Těžká obezita</span></div>
+              </div>
+            </div>
+
+            <footer class="mt-10 text-xs text-center" style="color:var(--faint)">
+              BMI je pouze orientační ukazatel.
+            </footer>
+          </div>
+        </div>
+      `
     }).mount('#app');
   </script>
 
@@ -196,7 +279,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js').then(function (registration) {
+        navigator.serviceWorker.register('/sw.js').then(function () {
           console.log('ServiceWorker registrován');
         }, function (err) {
           console.log('ServiceWorker registrace selhala: ', err);
