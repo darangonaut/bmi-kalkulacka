@@ -1,44 +1,46 @@
-# BMI Calculator
+# BMI Kalkulačka
 
-A simple and modern web application for calculating Body Mass Index (BMI).
+A clean, single-file BMI calculator with a visual gauge and a body-fat estimate. Live, reactive (no "calculate" button), installable as a PWA. UI in Czech.
+
+**Live:** [bmi.markuska.cz](https://bmi.markuska.cz)
 
 ## Features
 
-- Calculate BMI based on user input (weight in kg, height in cm)
-- Display BMI value and category (underweight, normal, overweight, obesity)
-- Responsive design for desktop and mobile
-- Progressive Web App (PWA): can be installed on your device
-- Lightweight, no backend required
+- **Live BMI** from height (cm) + weight (kg) — updates as you type
+- **Visual gauge** — an animated marker on a colour-coded 15–40 scale shows exactly where you land
+- **Category** (Podváha / Ideální / Mírná nadváha / Obezita / Těžká obezita) with the category colour as the only accent
+- **Healthy weight range** for your height (BMI 18.5–25)
+- **Body-fat estimate** — optional sex + age inputs feed the **Deurenberg formula** (`%fat = 1.2·BMI + 0.23·age − 10.8·sex − 5.4`), with sex-specific ACE categories
+- **Caveat for muscular people** — BMI can't tell muscle from fat, so it overestimates for bodybuilders / strength athletes; body-fat % or waist is more telling
+- **PWA** — installable, works offline
+- No backend, no build step
 
-## Demo
+## Stack
 
-Open `index.html` directly in your browser, or deploy the project to any static web server.
+Single `index.html` — **Vue 3** + **Tailwind** (both via CDN), Space Grotesk, plain CSS for the gauge. Light Minimal aesthetic (monochrome + category accent), matching the rest of the markuska.cz apps.
 
-## Usage
+## File structure
 
-1. Enter your weight (kg) and height (cm).
-2. Click the "Calculate" button.
-3. View your BMI and the corresponding category.
+- `index.html` — the whole app (markup, Vue logic, styles)
+- `manifest.json`, `sw.js` — PWA manifest + service worker
+- `imgs/` — icons
 
-## Installation & Development
+## Development
 
-No installation is required for users. For development:
+```bash
+git clone https://github.com/darangonaut/bmi-kalkulacka.git
+cd bmi-kalkulacka
+python3 -m http.server 8765   # then open http://localhost:8765
+```
+Edit `index.html` directly — no build, no dependencies to install.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/darangonaut/bmi-kalkulacka.git
-   ```
-2. Open the project in your code editor.
-3. Edit files in the `js/`, `css/`, or `less/` folders as needed.
+## Deploy
 
-## File Structure
+Static deploy on the Oracle VM (git clone into `/var/www/bmi/public`, nginx vhost, certbot). Update = `git pull` on the server. See `~/vyvoj/DEPLOY.md` section A.
 
-- `index.html` – main application page
-- `js/main.js` – BMI calculation logic and UI handling
-- `css/main.css` – application styles (compiled from LESS)
-- `less/base.less` – source styles (edit here for style changes)
-- `imgs/` – icons and images
-- `manifest.json`, `sw.js` – PWA support (manifest and service worker)
+## Note
+
+BMI and the body-fat figure are **orientational estimates**, not a medical diagnosis.
 
 ## License
 
